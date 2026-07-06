@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InferGrid",
-  description: "InferGrid demo app",
+  title: "InferGrid — Distributed ML Inference Platform",
+  description:
+    "A distributed ML inference platform on Kubernetes: sync + async request paths, model-drift detection, and safe A/B rollouts. 699 RPS at 200 concurrent users with zero failures.",
 };
 
 export default function RootLayout({

@@ -1,26 +1,23 @@
-import Image from "next/image";
-
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Hero } from "./Hero";
 
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col items-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex w-full max-w-3xl flex-1 flex-col justify-between bg-white px-16 py-24 dark:bg-black">
-        <div className="flex items-center justify-between">
-          <Image
-            className="dark:invert"
-            src="/next.svg"
-            alt="Next.js logo"
-            width={100}
-            height={20}
-            priority
-          />
+      <div className="flex w-full max-w-5xl flex-1 flex-col px-6 sm:px-10">
+        <header className="flex items-center justify-between py-6">
+          <span className="flex items-center gap-2 text-lg font-semibold tracking-tight text-black dark:text-zinc-50">
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-sm font-bold">
+              IG
+            </span>
+            InferGrid
+          </span>
           <ThemeToggle />
-        </div>
-        <Hero />
-        <div />
-      </main>
+        </header>
+        <main className="flex flex-1 items-center py-16 sm:py-24">
+          <Hero />
+        </main>
+      </div>
     </div>
   );
 }
