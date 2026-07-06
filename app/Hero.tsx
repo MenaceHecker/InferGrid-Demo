@@ -55,7 +55,7 @@ export function Hero() {
           <br className="hidden sm:block" /> built for production.
         </h1>
         <p className="max-w-xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-          InferGrid serves models under real load — absorbing traffic spikes
+          InferGrid serves models under real load, absorbing traffic spikes
           with a sync + async request path, catching silent model drift, and
           rolling out new versions safely with A/B routing. Running on
           Kubernetes with Kafka, Redis, and full Prometheus/Grafana
