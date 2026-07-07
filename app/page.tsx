@@ -1,5 +1,6 @@
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Hero } from "./Hero";
+import { Architecture } from "./Architecture";
 
 export default function Home() {
   return (
@@ -14,8 +15,11 @@ export default function Home() {
           </span>
           <ThemeToggle />
         </header>
-        <main className="flex flex-1 items-center py-16 sm:py-24">
-          <Hero />
+        <main>
+          <section className="py-16 sm:py-24">
+            <Hero />
+          </section>
+          <Architecture />
         </main>
       </div>
     </div>
