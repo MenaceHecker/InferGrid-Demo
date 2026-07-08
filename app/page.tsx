@@ -1,6 +1,7 @@
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Hero } from "./Hero";
 import { Architecture } from "./Architecture";
+import { Benchmarks } from "./Benchmarks";
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
             <Hero />
           </section>
           <Architecture />
+          <Benchmarks />
         </main>
       </div>
     </div>

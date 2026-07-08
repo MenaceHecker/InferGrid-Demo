@@ -25,10 +25,10 @@ type Node = {
 
 const requestPath: Node[] = [
   { icon: Globe, title: "Client", meta: "POST /predict" },
-  { icon: Server, title: "Inference API", meta: "FastAPI :8000" },
-  { icon: Waypoints, title: "Kafka", meta: "model-a/b.requests" },
-  { icon: Cpu, title: "Consumer Worker", meta: "confluent-kafka" },
-  { icon: Database, title: "Redis", meta: "results · TTL 5min" },
+  { icon: Server, title: "Inference API", meta: ":8000" },
+  { icon: Waypoints, title: "Kafka", meta: "2 topics" },
+  { icon: Cpu, title: "Worker", meta: "consumer" },
+  { icon: Database, title: "Redis", meta: "TTL 5min" },
 ];
 
 const control: Node[] = [
@@ -51,12 +51,12 @@ const fadeUp = {
 function NodeCard({ node }: { node: Node }) {
   const Icon = node.icon;
   return (
-    <div className="flex flex-1 items-center gap-3 rounded-xl border border-black/[.08] bg-white px-4 py-3 dark:border-white/[.1] dark:bg-zinc-950">
-      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-black/[.05] text-black dark:bg-white/[.08] dark:text-zinc-100">
-        <Icon className="size-[18px]" />
+    <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-black/[.08] bg-white px-3 py-2.5 dark:border-white/[.1] dark:bg-zinc-950">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-black/[.05] text-black dark:bg-white/[.08] dark:text-zinc-100">
+        <Icon className="size-[17px]" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-black dark:text-zinc-50">
+        <p className="whitespace-nowrap text-sm font-medium text-black dark:text-zinc-50">
           {node.title}
         </p>
         <p className="truncate font-mono text-xs text-zinc-500 dark:text-zinc-400">
@@ -73,8 +73,8 @@ function Connector() {
       aria-hidden
       className="flex shrink-0 items-center justify-center text-zinc-400 dark:text-zinc-600"
     >
-      <ArrowDown className="size-4 md:hidden" />
-      <ArrowRight className="hidden size-4 md:block" />
+      <ArrowDown className="size-4 lg:hidden" />
+      <ArrowRight className="hidden size-4 lg:block" />
     </div>
   );
 }
@@ -138,12 +138,12 @@ export function Architecture() {
       {/* Primary request path */}
       <motion.div
         variants={fadeUp}
-        className="flex flex-col items-stretch gap-3 md:flex-row md:items-center"
+        className="flex flex-col items-stretch gap-3 lg:flex-row lg:items-center"
       >
         {requestPath.map((node, i) => (
           <div
             key={node.title}
-            className="flex flex-col items-stretch gap-3 md:flex-1 md:flex-row md:items-center"
+            className="flex min-w-0 flex-col items-stretch gap-3 lg:flex-1 lg:flex-row lg:items-center"
           >
             <NodeCard node={node} />
             {i < requestPath.length - 1 && <Connector />}
