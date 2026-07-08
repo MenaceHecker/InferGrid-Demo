@@ -65,7 +65,7 @@ export function Hero() {
 
       <motion.div variants={item} className="flex flex-col gap-4 sm:flex-row">
         <Button asChild size="default" className="h-12 px-6 text-base">
-          <Link href="/grid">
+          <Link href="/demo">
             Try the live demo
             <ArrowRight />
           </Link>
