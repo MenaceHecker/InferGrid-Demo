@@ -2,6 +2,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Hero } from "./Hero";
 import { Architecture } from "./Architecture";
 import { Benchmarks } from "./Benchmarks";
+import { Features } from "./Features";
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
           </section>
           <Architecture />
           <Benchmarks />
+          <Features />
         </main>
       </div>
     </div>
