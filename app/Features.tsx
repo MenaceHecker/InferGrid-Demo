@@ -86,7 +86,7 @@ export function Features() {
             <motion.div
               key={f.title}
               variants={fadeUp}
-              className="flex flex-col gap-3 rounded-2xl border border-black/[.08] bg-white/60 p-5 dark:border-white/[.1] dark:bg-white/[.02]"
+              className="flex flex-col gap-3 rounded-2xl border border-black/[.08] bg-white/60 p-5 transition-[transform,border-color,background-color] duration-200 hover:-translate-y-0.5 hover:border-black/[.16] hover:bg-white dark:border-white/[.1] dark:bg-white/[.02] dark:hover:border-white/[.2] dark:hover:bg-white/[.04]"
             >
               <span className="grid size-10 place-items-center rounded-xl bg-black/[.05] text-black dark:bg-white/[.08] dark:text-zinc-100">
                 <Icon className="size-5" />

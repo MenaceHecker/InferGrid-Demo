@@ -51,7 +51,7 @@ const fadeUp = {
 function NodeCard({ node }: { node: Node }) {
   const Icon = node.icon;
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-black/[.08] bg-white px-3 py-2.5 dark:border-white/[.1] dark:bg-zinc-950">
+    <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-black/[.08] bg-white px-3 py-2.5 transition-colors hover:border-black/[.16] dark:border-white/[.1] dark:bg-zinc-950 dark:hover:border-white/[.2]">
       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-black/[.05] text-black dark:bg-white/[.08] dark:text-zinc-100">
         <Icon className="size-[17px]" />
       </span>

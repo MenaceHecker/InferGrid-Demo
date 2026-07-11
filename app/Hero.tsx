@@ -47,7 +47,10 @@ export function Hero() {
     >
       <motion.div variants={item} className="flex flex-col gap-5">
         <span className="inline-flex w-fit items-center gap-2 self-center rounded-full border border-black/[.1] px-3 py-1 text-xs font-medium text-zinc-600 sm:self-start dark:border-white/[.15] dark:text-zinc-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          </span>
           Live on GKE · 200 concurrent users, zero failures
         </span>
         <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-black sm:text-5xl dark:text-zinc-50">

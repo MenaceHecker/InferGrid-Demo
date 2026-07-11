@@ -107,7 +107,7 @@ export function PredictDemo() {
             <button
               key={i}
               onClick={() => setText(s)}
-              className="rounded-full border border-black/[.1] px-3 py-1 text-xs text-zinc-600 transition-colors hover:bg-black/[.04] dark:border-white/[.15] dark:text-zinc-400 dark:hover:bg-white/[.06]"
+              className="rounded-full border border-black/[.1] px-3 py-1 text-xs text-zinc-600 transition-[transform,background-color,border-color] duration-150 hover:border-black/[.2] hover:bg-black/[.04] active:scale-[0.97] dark:border-white/[.15] dark:text-zinc-400 dark:hover:border-white/[.3] dark:hover:bg-white/[.06]"
             >
               {LABELS[
                 ["sci.space", "rec.sport.hockey", "sci.crypt", "sci.med"][i]

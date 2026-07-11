@@ -418,7 +418,7 @@ export function Benchmarks() {
         ].map((s) => (
           <div
             key={s.l}
-            className="flex flex-col gap-1 rounded-xl border border-black/[.08] bg-white/60 px-4 py-4 dark:border-white/[.1] dark:bg-white/[.02]"
+            className="flex flex-col gap-1 rounded-xl border border-black/[.08] bg-white/60 px-4 py-4 transition-colors hover:border-black/[.16] dark:border-white/[.1] dark:bg-white/[.02] dark:hover:border-white/[.2]"
           >
             <span className="text-2xl font-semibold tracking-tight text-black tabular-nums dark:text-zinc-50">
               {s.v}
