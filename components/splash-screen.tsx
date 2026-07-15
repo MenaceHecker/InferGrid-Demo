@@ -176,8 +176,8 @@ const LOG_LINES = [
   "Bootstrapping Prometheus metrics exporter…",
   "Calibrating KS-test baseline distribution…",
   "Starting A/B experiment tracker…",
-  "Sync + async inference paths online.",
-  "InferGrid ready · 699 RPS capacity confirmed.",
+  "Sync + async inference paths online",
+  "InferGrid ready · 699 RPS capacity confirmed",
 ];
 
 // ─── Main splash screen ───────────────────────────────────────────────────────
@@ -408,9 +408,8 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
                         initial={{ opacity: 0, x: -4 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.2 }}
-                        className={`flex items-start gap-2 leading-5 ${
-                          isDone ? "text-zinc-500" : "text-indigo-300"
-                        }`}
+                        className={`flex items-start gap-2 leading-5 ${isDone ? "text-zinc-500" : "text-indigo-300"
+                          }`}
                       >
                         <span className={isDone ? "text-emerald-600" : "text-indigo-500"}>
                           {isDone ? "✓" : "›"}
