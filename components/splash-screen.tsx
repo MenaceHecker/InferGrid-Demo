@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import gsap from "gsap";
+import { DrawSVGPlugin } from "gsap/dist/DrawSVGPlugin";
+
+gsap.registerPlugin(DrawSVGPlugin);
 
 // ─── Neural grid canvas ───────────────────────────────────────────────────────
 interface Node {
@@ -141,6 +144,13 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
   const logoRef = useRef<HTMLDivElement>(null);
   const ringOuterRef = useRef<HTMLDivElement>(null);
   const ringInnerRef = useRef<HTMLDivElement>(null);
+  // SVG circle refs for DrawSVGPlugin
+  const outerCircleRef = useRef<SVGCircleElement>(null);
+  const innerCircleRef = useRef<SVGCircleElement>(null);
+  // Circuit-trace path refs
+  const circuitPath1Ref = useRef<SVGPathElement>(null);
+  const circuitPath2Ref = useRef<SVGPathElement>(null);
+  const circuitPath3Ref = useRef<SVGPathElement>(null);
   const logoBoxRef = useRef<HTMLDivElement>(null);
   const logoTextRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -217,18 +227,42 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
         "-=0.6"
       );
 
-      // Rings expand
+      // Rings appear (fade in wrapper divs)
       tl.fromTo(
         ringOuterRef.current,
-        { scale: 0, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.6, ease: "power2.out" },
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, ease: "power2.out" },
         "-=0.4"
       );
       tl.fromTo(
         ringInnerRef.current,
-        { scale: 0, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.5, ease: "power2.out" },
-        "-=0.5"
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, ease: "power2.out" },
+        "-=0.25"
+      );
+
+      // DrawSVG — outer ring draws from 0% to 100%
+      tl.fromTo(
+        outerCircleRef.current,
+        { drawSVG: "0%" },
+        { drawSVG: "100%", duration: 1.1, ease: "power2.inOut" },
+        "-=0.28"
+      );
+
+      // DrawSVG — inner ring draws in slightly offset
+      tl.fromTo(
+        innerCircleRef.current,
+        { drawSVG: "0%" },
+        { drawSVG: "100%", duration: 0.9, ease: "power2.inOut" },
+        "-=0.9"
+      );
+
+      // DrawSVG — circuit trace paths
+      tl.fromTo(
+        [circuitPath1Ref.current, circuitPath2Ref.current, circuitPath3Ref.current],
+        { drawSVG: "0%" },
+        { drawSVG: "100%", duration: 0.7, stagger: 0.12, ease: "power3.inOut" },
+        "-=0.6"
       );
 
       // Shimmer sweep
@@ -388,39 +422,95 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
         <div ref={logoRef} className="flex flex-col items-center gap-4">
           <div className="relative flex items-center justify-center">
 
+            {/* Outer rotating ring — drawn by DrawSVGPlugin */}
             <div ref={ringOuterRef} className="absolute" style={{ opacity: 0 }}>
               <motion.div animate={{ rotate: 360 }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }}>
-                <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
-                  <circle cx="60" cy="60" r="56" stroke="url(#ring-grad)" strokeWidth="1" strokeDasharray="8 4" />
+                <svg width="140" height="140" viewBox="0 0 140 140" fill="none">
                   <defs>
-                    <linearGradient id="ring-grad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                    <linearGradient id="ring-grad-outer" x1="0" y1="0" x2="140" y2="140" gradientUnits="userSpaceOnUse">
                       <stop stopColor="#6366f1" />
-                      <stop offset="0.5" stopColor="#a78bfa" stopOpacity="0.2" />
+                      <stop offset="0.45" stopColor="#a78bfa" stopOpacity="0.15" />
                       <stop offset="1" stopColor="#6366f1" />
                     </linearGradient>
                   </defs>
+                  <circle
+                    ref={outerCircleRef}
+                    cx="70" cy="70" r="65"
+                    stroke="url(#ring-grad-outer)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
                 </svg>
               </motion.div>
             </div>
 
+            {/* Inner counter-rotating ring — drawn by DrawSVGPlugin */}
             <div ref={ringInnerRef} className="absolute" style={{ opacity: 0 }}>
               <motion.div animate={{ rotate: -360 }} transition={{ duration: 18, repeat: Infinity, ease: "linear" }}>
-                <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
-                  <circle cx="48" cy="48" r="44" stroke="rgba(165,180,252,0.25)" strokeWidth="0.5" strokeDasharray="3 12" />
+                <svg width="108" height="108" viewBox="0 0 108 108" fill="none">
+                  <circle
+                    ref={innerCircleRef}
+                    cx="54" cy="54" r="50"
+                    stroke="rgba(165,180,252,0.35)"
+                    strokeWidth="0.75"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
                 </svg>
               </motion.div>
             </div>
 
+            {/* Logo box with circuit-trace SVG overlay */}
             <div
               ref={logoBoxRef}
-              className="relative grid h-16 w-16 place-items-center rounded-2xl text-2xl font-bold text-white overflow-hidden"
+              className="relative grid h-16 w-16 place-items-center rounded-2xl overflow-hidden"
               style={{
                 background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                 boxShadow: "0 0 30px rgba(99,102,241,0.5), 0 0 60px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                 opacity: 0,
               }}
             >
-              IG
+              {/* Circuit trace paths drawn by DrawSVGPlugin */}
+              <svg
+                className="absolute inset-0 w-full h-full"
+                viewBox="0 0 64 64"
+                fill="none"
+                aria-hidden="true"
+              >
+                {/* Horizontal trace top */}
+                <path
+                  ref={circuitPath1Ref}
+                  d="M8 16 H28 V24 H44"
+                  stroke="rgba(255,255,255,0.35)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {/* Vertical trace left */}
+                <path
+                  ref={circuitPath2Ref}
+                  d="M16 8 V28 H24 V40 H36"
+                  stroke="rgba(165,180,252,0.4)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {/* Bottom trace */}
+                <path
+                  ref={circuitPath3Ref}
+                  d="M20 56 H40 V48 H52"
+                  stroke="rgba(255,255,255,0.25)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+
+              {/* IG wordmark */}
+              <span className="relative z-10 text-2xl font-bold text-white select-none">IG</span>
+
+              {/* Shimmer sweep */}
               <div
                 className="splash-shimmer absolute inset-0"
                 style={{
