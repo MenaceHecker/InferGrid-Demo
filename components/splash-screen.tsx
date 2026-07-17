@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import gsap from "gsap";
 
 // ─── Neural grid canvas ───────────────────────────────────────────────────────
 interface Node {
@@ -41,7 +42,6 @@ function NeuralCanvas() {
       pulseSpeed: 0.02 + Math.random() * 0.03,
     }));
 
-    // Spread initial positions in a grid-ish pattern for visual density
     nodes.forEach((n, i) => {
       const cols = Math.ceil(Math.sqrt(NODE_COUNT));
       const col = i % cols;
@@ -52,8 +52,6 @@ function NeuralCanvas() {
 
     function draw() {
       ctx.clearRect(0, 0, W, H);
-
-      // Move nodes
       nodes.forEach((n) => {
         n.x += n.vx;
         n.y += n.vy;
@@ -62,7 +60,6 @@ function NeuralCanvas() {
         if (n.y < 0 || n.y > H) n.vy *= -1;
       });
 
-      // Draw edges
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const a = nodes[i];
@@ -83,16 +80,13 @@ function NeuralCanvas() {
         }
       }
 
-      // Draw nodes
       nodes.forEach((n) => {
         const glow = 0.6 + 0.4 * Math.sin(n.pulse);
         const r = n.radius * glow;
-
         ctx.beginPath();
         ctx.arc(n.x, n.y, r * 2.8, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(99,102,241,${0.06 * glow})`;
         ctx.fill();
-
         ctx.beginPath();
         ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
         const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r);
@@ -114,7 +108,6 @@ function NeuralCanvas() {
       canvas.height = H;
     };
     window.addEventListener("resize", onResize);
-
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("resize", onResize);
@@ -122,48 +115,7 @@ function NeuralCanvas() {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
-      aria-hidden="true"
-    />
-  );
-}
-
-// ─── Animated counter ─────────────────────────────────────────────────────────
-function AnimatedNumber({ to, decimals = 0 }: { to: number; decimals?: number }) {
-  const mv = useMotionValue(0);
-  const rounded = useTransform(mv, (v) => v.toFixed(decimals));
-  const [display, setDisplay] = useState("0");
-
-  useEffect(() => {
-    const controls = animate(mv, to, { duration: 1.8, ease: "easeOut" });
-    const unsub = rounded.on("change", setDisplay);
-    return () => {
-      controls.stop();
-      unsub();
-    };
-  }, [mv, to, rounded]);
-
-  return <span>{display}</span>;
-}
-
-// ─── Progress bar ─────────────────────────────────────────────────────────────
-function ProgressBar({ progress }: { progress: number }) {
-  return (
-    <div className="relative h-px w-full overflow-hidden rounded-full bg-white/10">
-      <motion.div
-        className="absolute inset-y-0 left-0 rounded-full"
-        style={{
-          width: `${progress}%`,
-          background: "linear-gradient(90deg, #818cf8, #6366f1, #a78bfa)",
-          boxShadow: "0 0 8px rgba(99,102,241,0.8)",
-        }}
-        initial={{ width: 0 }}
-        animate={{ width: `${progress}%` }}
-        transition={{ ease: "easeOut", duration: 0.4 }}
-      />
-    </div>
+    <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden="true" />
   );
 }
 
@@ -183,9 +135,58 @@ const LOG_LINES = [
 // ─── Main splash screen ───────────────────────────────────────────────────────
 export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
   const [visible, setVisible] = useState(true);
-  const [progress, setProgress] = useState(0);
   const [logIndex, setLogIndex] = useState(0);
-  const [exiting, setExiting] = useState(false);
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
+  const ringOuterRef = useRef<HTMLDivElement>(null);
+  const ringInnerRef = useRef<HTMLDivElement>(null);
+  const logoBoxRef = useRef<HTMLDivElement>(null);
+  const logoTextRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const progressFillRef = useRef<HTMLDivElement>(null);
+  const progressPctRef = useRef<HTMLSpanElement>(null);
+  const scanlineRef = useRef<HTMLDivElement>(null);
+  const glowBlobRef = useRef<HTMLDivElement>(null);
+  const particleContainerRef = useRef<HTMLDivElement>(null);
+  const stat1Ref = useRef<HTMLDivElement>(null);
+  const stat2Ref = useRef<HTMLDivElement>(null);
+  const stat3Ref = useRef<HTMLDivElement>(null);
+
+  function spawnParticles() {
+    const container = particleContainerRef.current;
+    if (!container) return;
+    const cx = container.offsetWidth / 2;
+    const cy = container.offsetHeight / 2;
+    for (let i = 0; i < 22; i++) {
+      const dot = document.createElement("div");
+      const size = Math.random() * 4 + 2;
+      dot.style.cssText = `
+        position:absolute;
+        width:${size}px;height:${size}px;
+        border-radius:50%;
+        background:hsl(${230 + Math.random() * 50},90%,${65 + Math.random() * 20}%);
+        left:${cx}px;top:${cy}px;pointer-events:none;
+      `;
+      container.appendChild(dot);
+      const angle = (i / 22) * Math.PI * 2 + Math.random() * 0.5;
+      const dist = 60 + Math.random() * 120;
+      gsap.fromTo(
+        dot,
+        { x: 0, y: 0, opacity: 1, scale: 1 },
+        {
+          x: Math.cos(angle) * dist,
+          y: Math.sin(angle) * dist,
+          opacity: 0,
+          scale: 0,
+          duration: 0.7 + Math.random() * 0.5,
+          ease: "power2.out",
+          onComplete: () => dot.remove(),
+        }
+      );
+    }
+  }
 
   useEffect(() => {
     if (sessionStorage.getItem("ig-splash-seen")) {
@@ -194,256 +195,342 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
       return;
     }
 
-    const total = LOG_LINES.length;
-    let step = 0;
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
 
-    const interval = setInterval(() => {
-      step++;
-      setLogIndex(step);
-      setProgress(Math.round((step / total) * 100));
+      // Fade in root
+      tl.fromTo(rootRef.current, { opacity: 0 }, { opacity: 1, duration: 0.4 });
 
-      if (step >= total) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setExiting(true);
-          sessionStorage.setItem("ig-splash-seen", "1");
-          setTimeout(() => {
-            setVisible(false);
-            onComplete?.();
-          }, 800);
-        }, 600);
-      }
-    }, 280);
+      // Glow blob breathes in
+      tl.fromTo(
+        glowBlobRef.current,
+        { scale: 0.4, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 1.2, ease: "power3.out" },
+        "<"
+      );
 
-    return () => clearInterval(interval);
-  }, [onComplete]);
+      // Logo box pops in with spring
+      tl.fromTo(
+        logoBoxRef.current,
+        { scale: 0.3, opacity: 0, rotation: -15 },
+        { scale: 1, opacity: 1, rotation: 0, duration: 0.7, ease: "back.out(2.2)" },
+        "-=0.6"
+      );
+
+      // Rings expand
+      tl.fromTo(
+        ringOuterRef.current,
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.6, ease: "power2.out" },
+        "-=0.4"
+      );
+      tl.fromTo(
+        ringInnerRef.current,
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: "power2.out" },
+        "-=0.5"
+      );
+
+      // Shimmer sweep
+      tl.fromTo(
+        ".splash-shimmer",
+        { x: "-110%" },
+        { x: "220%", duration: 0.8, ease: "power1.inOut" },
+        "-=0.1"
+      );
+
+      // Particle burst
+      tl.call(() => spawnParticles(), [], "-=0.3");
+
+      // Logo wordmark slides up
+      tl.fromTo(
+        logoTextRef.current,
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        "-=0.2"
+      );
+
+      // Stats stagger in
+      tl.fromTo(
+        [stat1Ref.current, stat2Ref.current, stat3Ref.current],
+        { opacity: 0, y: 16, scale: 0.85 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.12, ease: "back.out(1.5)" },
+        "-=0.1"
+      );
+
+      // Animate stat counters
+      tl.call(
+        () => {
+          gsap.to({ val: 0 }, {
+            val: 699, duration: 1.6, ease: "power2.out",
+            onUpdate: function () {
+              const el = stat1Ref.current?.querySelector(".stat-value");
+              if (el) el.textContent = Math.round((this.targets() as {val:number}[])[0].val).toString();
+            },
+          });
+          gsap.to({ val: 0 }, {
+            val: 100, duration: 1.4, ease: "power2.out",
+            onUpdate: function () {
+              const el = stat2Ref.current?.querySelector(".stat-value");
+              if (el) el.textContent = Math.round((this.targets() as {val:number}[])[0].val).toString();
+            },
+          });
+        },
+        [],
+        "-=0.4"
+      );
+
+      // Terminal slides up
+      tl.fromTo(
+        terminalRef.current,
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        "-=0.2"
+      );
+
+      // Boot log ticks
+      tl.call(() => {
+        const total = LOG_LINES.length;
+        let step = 0;
+        const interval = setInterval(() => {
+          step++;
+          setLogIndex(step);
+          const pct = Math.round((step / total) * 100);
+          gsap.to(progressFillRef.current, { width: `${pct}%`, duration: 0.35, ease: "power1.out" });
+          if (progressPctRef.current) progressPctRef.current.textContent = `${pct}%`;
+
+          if (step >= total) {
+            clearInterval(interval);
+            setTimeout(() => {
+              sessionStorage.setItem("ig-splash-seen", "1");
+              const exitTl = gsap.timeline({
+                onComplete: () => { setVisible(false); onComplete?.(); },
+              });
+              exitTl
+                .to(terminalRef.current, { opacity: 0, y: -10, duration: 0.3, ease: "power2.in" })
+                .to(statsRef.current, { opacity: 0, y: -10, duration: 0.25, ease: "power2.in" }, "-=0.15")
+                .to(logoRef.current, { scale: 1.08, opacity: 0, duration: 0.4, ease: "power3.in" }, "-=0.1")
+                .to(glowBlobRef.current, { scale: 3, opacity: 0, duration: 0.6, ease: "power3.in" }, "-=0.3")
+                .to(rootRef.current, { clipPath: "inset(0% 0% 100% 0%)", duration: 0.7, ease: "power4.inOut" }, "-=0.2");
+            }, 500);
+          }
+        }, 280);
+      }, [], "+=0.1");
+
+      // Continuous scanline
+      gsap.to(scanlineRef.current, {
+        y: "100vh", duration: 3, ease: "none", repeat: -1, repeatDelay: 2,
+      });
+
+      // Logo glow pulse
+      gsap.to(logoBoxRef.current, {
+        boxShadow:
+          "0 0 50px rgba(99,102,241,0.85), 0 0 100px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+        duration: 1.8, repeat: -1, yoyo: true, ease: "sine.inOut",
+      });
+    });
+
+    return () => ctx.revert();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!visible) return null;
 
   return (
-    <AnimatePresence>
-      {!exiting && (
-        <motion.div
-          key="splash"
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden"
-          style={{ background: "#050507" }}
-          initial={{ opacity: 1 }}
-          exit={{
-            clipPath: ["inset(0% 0% 0% 0%)", "inset(0% 0% 100% 0%)"],
-            transition: { duration: 0.75, ease: [0.76, 0, 0.24, 1] },
-          }}
-        >
-          <NeuralCanvas />
+    <div
+      ref={rootRef}
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden"
+      style={{ background: "#050507", opacity: 0 }}
+    >
+      <NeuralCanvas />
 
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, #050507 100%)",
-            }}
-          />
+      {/* Ambient glow blob */}
+      <div
+        ref={glowBlobRef}
+        className="pointer-events-none absolute"
+        style={{
+          width: "600px", height: "600px", borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.06) 50%, transparent 75%)",
+          transform: "translate(-50%, -50%)", left: "50%", top: "50%", opacity: 0,
+        }}
+      />
 
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,1) 2px, rgba(255,255,255,1) 3px)",
-            }}
-          />
+      {/* Scanline sweep */}
+      <div
+        ref={scanlineRef}
+        className="pointer-events-none absolute inset-x-0"
+        style={{
+          top: "-2px", height: "2px",
+          background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.6), rgba(165,180,252,0.8), rgba(99,102,241,0.6), transparent)",
+          boxShadow: "0 0 12px rgba(99,102,241,0.8)",
+        }}
+      />
 
-          <div className="relative z-10 flex flex-col items-center gap-10 px-6 text-center">
-            {/* Logo mark */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
-              className="flex flex-col items-center gap-4"
-            >
-              <div className="relative flex items-center justify-center">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                  className="absolute"
-                >
-                  <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="56"
-                      stroke="url(#ring-grad)"
-                      strokeWidth="1"
-                      strokeDasharray="8 4"
-                    />
-                    <defs>
-                      <linearGradient id="ring-grad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#6366f1" />
-                        <stop offset="0.5" stopColor="#a78bfa" stopOpacity="0.2" />
-                        <stop offset="1" stopColor="#6366f1" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </motion.div>
+      {/* CRT overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,1) 2px, rgba(255,255,255,1) 3px)" }}
+      />
 
-                <motion.div
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-                  className="absolute"
-                >
-                  <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
-                    <circle
-                      cx="48"
-                      cy="48"
-                      r="44"
-                      stroke="rgba(165,180,252,0.25)"
-                      strokeWidth="0.5"
-                      strokeDasharray="3 12"
-                    />
-                  </svg>
-                </motion.div>
+      {/* Vignette */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, #050507 100%)" }}
+      />
 
-                <div
-                  className="relative grid h-16 w-16 place-items-center rounded-2xl text-2xl font-bold text-white"
-                  style={{
-                    background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-                    boxShadow:
-                      "0 0 30px rgba(99,102,241,0.5), 0 0 60px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                >
-                  IG
-                  <motion.div
-                    className="absolute inset-0 rounded-2xl overflow-hidden"
-                    initial={{ x: "-100%" }}
-                    animate={{ x: "200%" }}
-                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
-                  >
-                    <div
-                      className="h-full w-1/2"
-                      style={{
-                        background:
-                          "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)",
-                        transform: "skewX(-20deg)",
-                      }}
-                    />
-                  </motion.div>
-                </div>
-              </div>
+      {/* Particle container */}
+      <div ref={particleContainerRef} className="pointer-events-none absolute inset-0" />
 
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="flex flex-col items-center gap-1"
-              >
-                <span
-                  className="text-3xl font-semibold tracking-tight text-white"
-                  style={{ fontFamily: "var(--font-geist-sans, sans-serif)" }}
-                >
-                  InferGrid
-                </span>
-                <span className="text-xs font-medium tracking-[0.25em] uppercase text-indigo-400/80">
-                  Distributed ML Inference
-                </span>
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col items-center gap-10 px-6 text-center">
+
+        {/* Logo mark */}
+        <div ref={logoRef} className="flex flex-col items-center gap-4">
+          <div className="relative flex items-center justify-center">
+
+            <div ref={ringOuterRef} className="absolute" style={{ opacity: 0 }}>
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }}>
+                <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                  <circle cx="60" cy="60" r="56" stroke="url(#ring-grad)" strokeWidth="1" strokeDasharray="8 4" />
+                  <defs>
+                    <linearGradient id="ring-grad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#6366f1" />
+                      <stop offset="0.5" stopColor="#a78bfa" stopOpacity="0.2" />
+                      <stop offset="1" stopColor="#6366f1" />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </motion.div>
-            </motion.div>
+            </div>
 
-            {/* Live stats */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="flex gap-10"
-            >
-              {[
-                { label: "RPS capacity", value: 699, suffix: "" },
-                { label: "p95 latency", value: 100, suffix: "ms" },
-                { label: "Failure rate", value: 0, suffix: "%" },
-              ].map((stat) => (
-                <div key={stat.label} className="flex flex-col items-center gap-1">
-                  <span className="tabular-nums text-2xl font-semibold text-white">
-                    {stat.suffix === "%" && stat.value === 0 ? (
-                      "0%"
-                    ) : (
-                      <>
-                        <AnimatedNumber to={stat.value} />
-                        {stat.suffix && (
-                          <span className="ml-0.5 text-base font-medium text-indigo-400">
-                            {stat.suffix}
-                          </span>
-                        )}
-                      </>
-                    )}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-widest text-zinc-500">
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
-            </motion.div>
+            <div ref={ringInnerRef} className="absolute" style={{ opacity: 0 }}>
+              <motion.div animate={{ rotate: -360 }} transition={{ duration: 18, repeat: Infinity, ease: "linear" }}>
+                <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
+                  <circle cx="48" cy="48" r="44" stroke="rgba(165,180,252,0.25)" strokeWidth="0.5" strokeDasharray="3 12" />
+                </svg>
+              </motion.div>
+            </div>
 
-            {/* Boot terminal */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.4 }}
-              className="w-full max-w-md"
+            <div
+              ref={logoBoxRef}
+              className="relative grid h-16 w-16 place-items-center rounded-2xl text-2xl font-bold text-white overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                boxShadow: "0 0 30px rgba(99,102,241,0.5), 0 0 60px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+                opacity: 0,
+              }}
             >
+              IG
               <div
-                className="rounded-xl border border-white/[0.07] p-4 font-mono text-xs text-left"
-                style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(8px)" }}
-              >
-                <div className="mb-3 flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
-                  <span className="ml-2 text-zinc-600 text-[10px] tracking-widest uppercase">infergrid — boot</span>
-                </div>
-
-                <div className="space-y-1 min-h-[6rem]">
-                  {LOG_LINES.slice(0, logIndex).map((line, i) => {
-                    const isLast = i === logIndex - 1;
-                    const isDone = i < logIndex - 1;
-                    return (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -4 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className={`flex items-start gap-2 leading-5 ${isDone ? "text-zinc-500" : "text-indigo-300"
-                          }`}
-                      >
-                        <span className={isDone ? "text-emerald-600" : "text-indigo-500"}>
-                          {isDone ? "✓" : "›"}
-                        </span>
-                        <span>{line}</span>
-                        {isLast && (
-                          <motion.span
-                            animate={{ opacity: [1, 0, 1] }}
-                            transition={{ duration: 0.8, repeat: Infinity }}
-                            className="ml-0.5 inline-block w-1.5 h-3.5 bg-indigo-400 align-text-bottom"
-                          />
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-4 space-y-1.5">
-                  <ProgressBar progress={progress} />
-                  <div className="flex justify-between text-[10px] text-zinc-600">
-                    <span>Initialising platform</span>
-                    <span className="tabular-nums text-indigo-500">{progress}%</span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+                className="splash-shimmer absolute inset-0"
+                style={{
+                  background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
+                  transform: "skewX(-20deg)", pointerEvents: "none",
+                }}
+              />
+            </div>
           </div>
 
+          <div ref={logoTextRef} className="flex flex-col items-center gap-1" style={{ opacity: 0 }}>
+            <span className="text-3xl font-semibold tracking-tight text-white" style={{ fontFamily: "var(--font-geist-sans, sans-serif)" }}>
+              InferGrid
+            </span>
+            <span className="text-xs font-medium tracking-[0.25em] uppercase text-indigo-400/80">
+              Distributed ML Inference
+            </span>
+          </div>
+        </div>
+
+        {/* Live stats */}
+        <div ref={statsRef} className="flex gap-10">
+          <div ref={stat1Ref} className="flex flex-col items-center gap-1" style={{ opacity: 0 }}>
+            <span className="tabular-nums text-2xl font-semibold text-white">
+              <span className="stat-value">0</span>
+            </span>
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500">RPS capacity</span>
+          </div>
+          <div ref={stat2Ref} className="flex flex-col items-center gap-1" style={{ opacity: 0 }}>
+            <span className="tabular-nums text-2xl font-semibold text-white">
+              <span className="stat-value">0</span>
+              <span className="ml-0.5 text-base font-medium text-indigo-400">ms</span>
+            </span>
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500">p95 latency</span>
+          </div>
+          <div ref={stat3Ref} className="flex flex-col items-center gap-1" style={{ opacity: 0 }}>
+            <span className="tabular-nums text-2xl font-semibold text-white">0%</span>
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500">Failure rate</span>
+          </div>
+        </div>
+
+        {/* Boot terminal */}
+        <div ref={terminalRef} className="w-full max-w-md" style={{ opacity: 0 }}>
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
-            style={{ background: "linear-gradient(to top, #050507, transparent)" }}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
+            className="rounded-xl border border-white/[0.07] p-4 font-mono text-xs text-left"
+            style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(8px)" }}
+          >
+            <div className="mb-3 flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
+              <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
+              <span className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
+              <span className="ml-2 text-zinc-600 text-[10px] tracking-widest uppercase">infergrid — boot</span>
+            </div>
+
+            <div className="space-y-1 min-h-[6rem]">
+              <AnimatePresence>
+                {LOG_LINES.slice(0, logIndex).map((line, i) => {
+                  const isLast = i === logIndex - 1;
+                  const isDone = i < logIndex - 1;
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.18 }}
+                      className={`flex items-start gap-2 leading-5 ${isDone ? "text-zinc-500" : "text-indigo-300"}`}
+                    >
+                      <span className={isDone ? "text-emerald-600" : "text-indigo-500"}>
+                        {isDone ? "✓" : "›"}
+                      </span>
+                      <span>{line}</span>
+                      {isLast && (
+                        <motion.span
+                          animate={{ opacity: [1, 0, 1] }}
+                          transition={{ duration: 0.8, repeat: Infinity }}
+                          className="ml-0.5 inline-block w-1.5 h-3.5 bg-indigo-400 align-text-bottom"
+                        />
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+
+            <div className="mt-4 space-y-1.5">
+              <div className="relative h-px w-full overflow-hidden rounded-full bg-white/10">
+                <div
+                  ref={progressFillRef}
+                  className="absolute inset-y-0 left-0 rounded-full"
+                  style={{
+                    width: "0%",
+                    background: "linear-gradient(90deg, #818cf8, #6366f1, #a78bfa)",
+                    boxShadow: "0 0 8px rgba(99,102,241,0.8)",
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-[10px] text-zinc-600">
+                <span>Initialising platform</span>
+                <span ref={progressPctRef} className="tabular-nums text-indigo-500">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom fade */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
+        style={{ background: "linear-gradient(to top, #050507, transparent)" }}
+      />
+    </div>
   );
 }
