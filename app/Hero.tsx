@@ -69,7 +69,7 @@ export function Hero() {
       <motion.div variants={item} className="flex flex-col gap-4 sm:flex-row">
         <Button asChild size="default" className="h-12 px-6 text-base">
           <Link href="/demo">
-            Try the live demo here
+            Try demo
             <ArrowRight />
           </Link>
         </Button>
